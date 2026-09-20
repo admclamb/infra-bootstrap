@@ -25,7 +25,7 @@ Each project directory is its own root Terraform config (own state, own provider
 2. **Per-PR ephemeral Neon branches.** The module gives every PR a single shared `preview` branch — good enough for most projects, but not isolated-DB-per-PR. That behavior comes from installing Neon's **Vercel Marketplace integration** by hand (Vercel → Integrations → Neon → connect to the project, enable "create a branch per preview deployment", parent = `preview`). It's a UI-driven OAuth connection, not something Terraform can express.
 3. **DNS records.** Whatever registrar the domain is on — Terraform can't manage that. Point the domain's A/CNAME records at what Vercel's dashboard shows after `apply` creates the domain resources.
 4. **Neon branch expiration.** Not exposed by the Neon Terraform provider. If ephemeral preview branches pile up against your plan's branch limit, that's a manual per-branch (or Vercel integration) setting.
-5. **Workflow files.** `templates/workflows/*.yml` are working examples (copied from stack-duel) for `Build`, post-merge `E2E and Promote`, and pre-merge `Auth E2E (Preview)`. Copy them into the new repo's `.github/workflows/` and adjust the app-specific steps (test commands, env vars) — they assume the secret names the module creates.
+5. **Pipeline files.** `templates/workflows/*.yml` (working examples for `Build`, post-merge `E2E and Promote`, and pre-merge `Auth E2E (Preview)`, copied from stack-duel) and `templates/dependabot.yml` are plain copy-paste files, not something Terraform writes into the target repo. Copy them into the new repo's `.github/` (workflows into `.github/workflows/`, dependabot into `.github/dependabot.yml`) and adjust the app-specific steps (test commands, env vars) — they assume the secret names the module creates. The module only manages the *setting* that dependabot.yml depends on (`github_repository_dependabot_security_updates`, i.e. "Dependabot alerts are on"), not the file's content.
 
 ## Setup
 
@@ -47,4 +47,6 @@ terraform apply -var-file="secret.tfvars"
 1. Copy `terraform/projects/stack-duel/` to `terraform/projects/<name>/`.
 2. Update `main.tf`'s literal values (`project_name`, `production_domain`, etc.) — everything specific to this project stays hardcoded here, only secrets go through variables.
 3. Drop `imports.tf` entirely — a new project has nothing to adopt.
-4. Follow the Clerk / DNS / Neon-integration manual steps above once resources exist.
+4. `terraform apply` (creates the GitHub repo, Vercel project, Neon project).
+5. Copy `templates/workflows/*.yml` into the new repo's `.github/workflows/`, and `templates/dependabot.yml` into `.github/dependabot.yml`.
+6. Follow the Clerk / DNS / Neon-integration manual steps above.

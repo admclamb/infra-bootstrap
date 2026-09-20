@@ -22,15 +22,6 @@ resource "github_repository_dependabot_security_updates" "app" {
   enabled    = true
 }
 
-resource "github_repository_file" "dependabot" {
-  repository          = github_repository.app.name
-  branch              = "main"
-  file                = ".github/dependabot.yml"
-  content             = file("${path.module}/templates/dependabot.yml")
-  commit_message      = "Add Dependabot config"
-  overwrite_on_create = true
-}
-
 resource "github_repository_file" "codeowners" {
   repository          = github_repository.app.name
   branch              = "main"
