@@ -56,10 +56,10 @@ jobs:
       - name: Run build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
-          DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
-          CLERK_SECRET_KEY: "sk_test_ci_dummy_0000000000000000000000000000"
-          CLERK_WEBHOOK_SIGNING_SECRET: "whsec_ci_dummy_00000000000000000000000000"
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_ci_dummy_0000000000000000000000000000000000"
+          DATABASE_URL: ""
+          CLERK_SECRET_KEY: ""
+          CLERK_WEBHOOK_SIGNING_SECRET: ""
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ""
         run: pnpm build
 
       - name: Run unit tests
