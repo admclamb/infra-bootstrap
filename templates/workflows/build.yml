@@ -1,0 +1,66 @@
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Check code format
+        run: pnpm format:check
+
+      - name: Run lint
+        env:
+          SKIP_ENV_VALIDATION: "1"
+        run: pnpm lint
+
+      - name: Run typecheck
+        run: pnpm typecheck
+
+      - name: Run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
+          CLERK_SECRET_KEY: "sk_test_ci_dummy_0000000000000000000000000000"
+          CLERK_WEBHOOK_SIGNING_SECRET: "whsec_ci_dummy_00000000000000000000000000"
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_ci_dummy_0000000000000000000000000000000000"
+        run: pnpm build
+
+      - name: Run unit tests
+        run: pnpm test:coverage
